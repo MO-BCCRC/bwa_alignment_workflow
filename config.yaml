@@ -1,0 +1,313 @@
+__PIPELINE_INFO__: 
+    name: bwa_alignment 
+    version: 2.5
+    tag: 'cycle007'
+    author: Diljot Grewal  <dgrewal@bccrc.ca>
+    data_type: bam
+    input_type: fastq
+    output_type: bam file
+    host_cluster: genesis
+    date_created: Mar 11 2014
+    date_last_updated: May 1 2015
+    kronos_version: '2.0.4'
+__GENERAL__:
+    python: 'path to python executable'
+    java:  'path to java executable'
+    samtools: 'path to samtools executable'
+    bwa: 'path to bwa executable'
+    picardtools_markdups: 'path to picardtools/MarkDuplicates.jar'
+__SHARED__: 
+    reference: 'path to a reference genome' 
+    interval_file: 'path to the interval_file.txt provided with the workflow used for splitting fastq files'
+    prefix_fastq: 'if True, then the read names would be refixed with a unique id'
+    markdups: 'if True, the duplicates would be flagged'
+    cleanup: 'if True, the intermediate files will be deleted'
+__SAMPLES__: 
+    # sample_id:
+    #    fastq1: value1\
+    #    fastq1_id: id
+    #    fastq2: value2
+    #    fastq2_id: id
+__TASK_1__: 
+    reserved: 
+        # do not change this section.
+        component_name: 'add_prefix_fastq'
+        component_version: '1.1.6'
+        seed_version: '1.0.1'
+    run: 
+        use_cluster: True
+        memory: '5G'
+        forced_dependencies: []
+        add_breakpoint: False
+        env_vars: 
+        boilerplate: 
+        parallel_run: False
+        parallel_params: []
+        interval_file: 
+    component: 
+        input_files: 
+            input: ('__SAMPLES__','fastq1')
+        output_files: 
+            output: 'add_prefix_fastq/fastq1_prefix.fq'
+        parameters: 
+            prefix: ('__SAMPLES__','fastq1_id')
+            run_component: ('__SHARED__', 'prefix_fastq')
+__TASK_2__: 
+    reserved: 
+        # do not change this section.
+        component_name: 'add_prefix_fastq'
+        component_version: '1.1.6'
+        seed_version: '1.0.1'
+    run: 
+        use_cluster: True
+        memory: '5G'
+        forced_dependencies: []
+        add_breakpoint: False
+        env_vars: 
+        boilerplate: 
+        parallel_run: False
+        parallel_params: []
+        interval_file: 
+    component: 
+        input_files: 
+            input: ('__SAMPLES__','fastq2')
+        output_files: 
+            output: 'add_prefix_fastq/fastq2_prefix.fq'
+        parameters: 
+            prefix: ('__SAMPLES__','fastq2_id')
+            run_component: ('__SHARED__', 'prefix_fastq')
+__TASK_3__: 
+    reserved: 
+        # do not change this section.
+        component_name: 'split_fastq'
+        component_version: '1.1.3'
+        seed_version: '1.0.4'
+    run: 
+        use_cluster: True
+        memory: '5G'
+        forced_dependencies: []
+        add_breakpoint: False
+        env_vars: 
+        boilerplate: 
+        parallel_run: True
+        parallel_params: []
+        interval_file: ('__SHARED__','interval_file')
+    component: 
+        input_files: 
+            input: ('__TASK_1__','output')
+        output_files: 
+            output: 'split_fastq/split_fastq1.fq'
+        parameters: 
+            range: 
+__TASK_4__: 
+    reserved: 
+        # do not change this section.
+        component_name: 'split_fastq'
+        component_version: '1.1.3'
+        seed_version: '1.0.4'
+    run: 
+        use_cluster: True
+        memory: '5G'
+        forced_dependencies: []
+        add_breakpoint: False
+        env_vars: 
+        boilerplate: 
+        parallel_run: True
+        parallel_params: []
+        interval_file: ('__SHARED__','interval_file')
+    component: 
+        input_files: 
+            input: ('__TASK_2__','output')
+        output_files: 
+            output: 'split_fastq/split_fastq2.fq'
+        parameters: 
+            range: 
+__TASK_5__: 
+    reserved: 
+        # do not change this section.
+        component_name: 'run_bwa'
+        component_version: '1.0.4'
+        seed_version: '1.0.0'
+    run: 
+        use_cluster: True
+        memory: '4G'
+        forced_dependencies: []
+        add_breakpoint: False
+        env_vars: 
+        boilerplate: 
+        parallel_run: True
+        parallel_params: ['seq1','seq2']
+        interval_file: ('__SHARED__','interval_file')
+    component: 
+        input_files: 
+            seq2: ('__TASK_4__','output')
+            seq1: ('__TASK_3__','output')
+            reference: ('__SHARED__','reference')
+        output_files: 
+            outfile: 'bwa/bwa_aln.bam'
+        parameters: 
+__TASK_6__:
+    reserved:
+        # do not change this section
+        component_name: 'run_samtools_sort'
+        component_version: '1.0.0'
+        seed_version: '0.1.19'
+    run:
+        use_cluster: True
+        memory: '5G'
+        forced_dependencies: []
+        add_breakpoint: False
+        env_vars:
+        boilerplate: null
+        parallel_run: False
+        parallel_params: []
+        interval_file: null
+    component:
+        input_files:
+            input: ('__TASK_5__','outfile')
+        output_files:
+            output: 'sort_alignments/bwa_aln.sorted.bam'
+        parameters:
+           options: '__OPTIONAL__'
+__TASK_7__: 
+    reserved: 
+        # do not change this section.
+        component_name: 'run_picardtools_markdups'
+        component_version: '1.0.0'
+        seed_version: '1.71'
+    run: 
+        use_cluster: True
+        memory: '5G'
+        forced_dependencies: []
+        add_breakpoint: False
+        env_vars: 
+        boilerplate: null
+        parallel_run: False
+        parallel_params: []
+        interval_file: null
+    component: 
+        input_files: 
+            input: ('__TASK_6__','output')
+        output_files: 
+            output: 'results/bwa_aln_sort_markdups.bam'
+            tmp_dir: 'run_picardtools/pictools_temp'
+            picard_metrics_file: 'run_picardtools/bwa_aln_sort_markdups.metrics.txt'
+        parameters: 
+            val_stringency: 'LENIENT'
+            read_name_regex: '[a-zA-Z0-9]+_[0-9]+:[0-9]+:([0-9]+):([0-9]+):([0-9]+).*'
+            run_component: ('__SHARED__','markdups')
+            assume_sorted: True
+            opd: 16
+            mfhfrem: 1000
+__TASK_8__:
+    reserved:
+        # do not change this section
+        component_name: 'run_samtools_index'
+        component_version: '1.0.0'
+        seed_version: '0.1.19'
+    run:
+        use_cluster: True
+        memory: '5G'
+        forced_dependencies: []
+        add_breakpoint: False
+        env_vars:
+        boilerplate: null
+        parallel_run: False
+        parallel_params: []
+        interval_file: null
+    component:
+        input_files:
+            input: ('__TASK_7__','output')
+        output_files:
+        parameters:
+__TASK_9__: 
+    reserved: 
+        # do not change this section.
+        component_name: 'run_samtools_flagstat'
+        component_version: '1.0.0'
+        seed_version: '0.1.19'
+    run: 
+        use_cluster: True
+        memory: '5G'
+        forced_dependencies: []
+        add_breakpoint: False
+        env_vars: 
+        boilerplate: 
+        parallel_run: False
+        parallel_params: []
+        interval_file: 
+    component: 
+        input_files: 
+            input: ('__TASK_7__','output')
+        output_files: 
+            output: 'results/bwa_aln_sort_markdups.flagstat'
+        parameters: 
+__TASK_10__:
+    reserved:
+        # do not change this section.
+        component_name: 'remove_files'
+        component_version: '1.0.0'
+        seed_version: '1.0.0'
+    run:
+        use_cluster: True
+        memory: '1G'
+        forced_dependencies: ['__TASK_5__']
+        add_breakpoint: False
+        env_vars:
+        boilerplate:
+        parallel_run: False
+        parallel_params: []
+        interval_file:
+    component:
+        input_files:
+            input: ('__TASK_1__','output'), ('__TASK_2__','output')
+        output_files:
+        parameters:
+            run_component: ('__SHARED__', 'cleanup')
+            postfix: '*'
+__TASK_11__:
+    reserved:
+        # do not change this section.
+        component_name: 'remove_files'
+        component_version: '1.0.0'
+        seed_version: '1.0.0'
+    run:
+        use_cluster: True
+        memory: '1G'
+        forced_dependencies: ['__TASK_5__']
+        add_breakpoint: False
+        env_vars:
+        boilerplate:
+        parallel_run: True
+        parallel_params: ['input']
+        interval_file: ('__SHARED__','interval_file')
+    component:
+        input_files:
+            input: ('__TASK_3__','output')
+        output_files:
+        parameters:
+            run_component: ('__SHARED__', 'cleanup')
+            postfix: ' '
+__TASK_12__:
+    reserved:
+        # do not change this section.
+        component_name: 'remove_files'
+        component_version: '1.0.0'
+        seed_version: '1.0.0'
+    run:
+        use_cluster: True
+        memory: '1G'
+        forced_dependencies: ['__TASK_5__']
+        add_breakpoint: False
+        env_vars:
+        boilerplate:
+        parallel_run: True
+        parallel_params: ['input']
+        interval_file: ('__SHARED__','interval_file')
+    component:
+        input_files:
+            input: ('__TASK_4__','output')
+        output_files:
+        parameters:
+            run_component: ('__SHARED__', 'cleanup')
+            postfix: ' '

@@ -1,0 +1,2 @@
+#sample_id	fastq1	fastq1_id	fastq2	fastq2_id
+<id1>	<path to fastq1>	<fid_1>	<path to fastq2>	<fid_2>

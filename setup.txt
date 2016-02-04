@@ -1,0 +1,11 @@
+#section	key	value
+__GENERAL__	python	<path to python to python executable, e.g. python>
+__GENERAL__	java	<path to jave executable, e.g. java>
+__GENERAL__	samtools	<path to samtools executable, e.g. samtools>
+__GENERAL__	bwa	<path to bwa executable>
+__GENERAL__	picardtools_markdups	<path to picard-tools/MarkDuplicates.jar> 
+__SHARED__	reference	<path to a reference genome>
+__SHARED__	interval_file	<path to the interval_file.txt provided with the workflow used for splitting fastq files>
+__SHARED__	prefix_fastq	<if True, then the read names would be refixed with a unique id>
+__SHARED__	markdups	<if True, the duplicates would be flagged>
+__SHARED__	cleanup	<if True, the intermediate files will be deleted>
